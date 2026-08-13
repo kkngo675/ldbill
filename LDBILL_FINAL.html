@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renaissance Saigon - Laundry Bill System</title>
+    <style>
+        :root {
+            --bg-color: #d1d5db;
+            --paper-bg: #ffffff;
+            --primary-accent: #8b0000;
+        }
+        * { box-sizing: border-box; font-family: "Helvetica Neue", Arial, sans-serif; }
+        body { background: var(--bg-color); margin: 0; padding: 10px; font-size: 10px; color: #000; }
+
+        .main-wrapper {
+            max-width: 1480px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 15px;
+        }
+
+        /* BAR NHẬP CHUỖI NHANH */
+        .quick-bar {
+            grid-column: 1 / -1;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .quick-bar input {
+            flex: 1; padding: 8px 12px; border: 2px solid var(--primary-accent);
+            border-radius: 4px; font-size: 12px; font-weight: bold; outline: none;
+        }
+        .btn {
+            background: var(--primary-accent); color: white; border: none;
+            padding: 8px 14px; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 11px;
+        }
+        .btn-green { background: #28a745; }
+        .btn-blue { background: #007bff; }
+        .btn-gray { background: #6c757d; }
+        .btn:hover { opacity: 0.9; }
+
+        /* MÔ PHỎNG BILL GIẤY A4 */
+        .bill-paper {
+            background: var(--paper-bg);
+            padding: 20px;
+            border: 1px solid #999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            line-height: 1.2;
+        }
+
+        .top-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .logo-box { text-align: center; }
+        .logo-r { font-size: 26px; font-weight: 900; line-height: 20px; font-family: "Times New Roman", serif; }
+        .logo-title { font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+        .logo-sub { font-size: 7px; letter-spacing: 0.5px; margin-top: 1px; }
+
+        .bill-titles { text-align: center; flex: 1; padding: 0 10px; }
+        .bill-titles h2 { margin: 0; font-size: 11px; font-weight: bold; }
+        .bill-titles h3 { margin: 1px 0; font-size: 9px; font-weight: normal; }
+        .bill-titles h4 { margin: 2px 0; font-size: 11px; font-style: italic; text-decoration: underline; }
+
+        .meta-top { font-size: 9px; text-align: right; }
+        .meta-top input { border: none; border-bottom: 1px dotted #000; text-align: center; font-weight: bold; font-size: 11px; outline: none; }
+
+        .notice-text { font-size: 8px; margin: 4px 0; }
+        .jp-text { font-size: 7.5px; color: #333; font-weight: normal; }
+
+        /* MÃ VIẾT TẮT HIỂN THỊ TRÊN MÀN HÌNH */
+        .code-tag {
+            color: var(--primary-accent);
+            font-weight: bold;
+            font-size: 8px;
+            background: #fee2e2;
+            padding: 0px 3px;
+            border-radius: 3px;
+            margin-left: 2px;
+            display: inline-block;
+        }
+
+        .guest-info-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 5px;
+            margin: 4px 0;
+            font-size: 8.5px;
+        }
+        .field-line { display: flex; align-items: flex-end; }
+        .field-line input { border: none; border-bottom: 1px dotted #000; width: 100%; padding: 0 4px; font-weight: bold; font-size: 10px; outline: none; }
+
+        .service-rules {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            margin: 4px 0;
+            font-size: 8px;
+        }
+
+        .bill-type-box {
+            background: #f8f9fa;
+            border: 1px dashed #6c757d;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 9px;
+        }
+
+        /* BẢNG SẢN PHẨM */
+        .bill-table { width: 100%; border-collapse: collapse; margin-top: 3px; }
+        .bill-table th, .bill-table td { border: 1px solid #000; padding: 1px 3px; font-size: 8.5px; height: 18px; }
+        .bill-table th { background: #f2f2f2; text-align: center; font-weight: bold; }
+        .sec-header {
+            background: #e6e6e6;
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        .pdc-master-bar {
+            background: #e2e8f0;
+            padding: 3px 8px;
+            border: 1px solid #000;
+            border-bottom: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8.5px;
+        }
+
+        /* KIỂU DÁNG CỘT HOTEL */
+        .qty-hotel {
+            width: 34px;
+            height: 20px;
+            text-align: center;
+            border: 1.5px solid #666;
+            font-weight: bold;
+            font-size: 12px;
+            background: #ffffff;
+            border-radius: 3px;
+            outline: none;
+        }
+        .qty-hotel.has-val {
+            background: #ffdede;
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        /* CỘT GUEST */
+        .qty-guest {
+            width: 18px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-size: 8px;
+            color: #888;
+        }
+
+        .amt-cell { text-align: right; font-weight: bold; width: 55px; }
+
+        .svc-chk-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            user-select: none;
+        }
+        .svc-chk-label input { margin: 0; cursor: pointer; }
+
+        /* SUMMARY */
+        .summary-block { width: 100%; border-collapse: collapse; margin-top: -1px; }
+        .summary-block td { border: 1px solid #000; padding: 2px 5px; font-size: 8.5px; font-weight: bold; }
+
+        .conditions-row {
+            border: 1px solid #000; margin-top: 3px; padding: 2px 5px; display: flex; justify-content: space-between; font-size: 8px; font-weight: bold;
+        }
+
+        .fine-print { font-size: 7px; margin-top: 4px; line-height: 1.1; }
+        .fine-print ul { margin: 1px 0; padding-left: 12px; }
+
+        .footer-distribution { display: flex; justify-content: space-between; margin-top: 4px; font-size: 7.5px; font-weight: bold; }
+
+        .side-bar { display: flex; flex-direction: column; gap: 10px; }
+        .card { background: #fff; padding: 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .shift-table { width: 100%; border-collapse: collapse; font-size: 8.5px; }
+        .shift-table th, .shift-table td { border: 1px solid #ddd; padding: 3px; text-align: left; }
+        .shift-table th { background: #f0f0f0; }
+
+        #printArea { display: none; }
+
+        /* CẤU HÌNH IN - tự động ẩn mã viết tắt khi in */
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            .code-tag { display: none !important; }
+            #printArea {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .printable-bill-page {
+                page-break-after: always;
+                break-after: page;
+                margin-bottom: 20px;
+            }
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+
+    <!-- THANH NHẬP CHUỖI NHANH (TỰ ĐỘNG ĐỒNG BỘ 2 CHIỀU) -->
+    <div class="quick-bar">
+        <span style="font-weight: bold; color: var(--primary-accent); font-size: 11px;">⚡ GÕ/ĐỒNG BỘ CHUỖI:</span>
+        <input type="text" id="quickStr" placeholder="Ví dụ: 1207c029901 ld2fu1t dc1jaf1su" oninput="parseStringAndFill()" onkeydown="if(event.key==='Enter') parseStringAndFill()">
+        <button class="btn" onclick="parseStringAndFill()">CẬP NHẬT BILL</button>
+        <button class="btn btn-gray" onclick="resetBillForm()">XÓA TRẮNG</button>
+    </div>
+
+    <!-- TỜ BILL GIẤY MÔ PHỎNG -->
+    <div class="bill-paper" id="activeBillPaper">
+        
+        <!-- TOP HEADER -->
+        <div class="top-header">
+            <div class="logo-box">
+                <div class="logo-r">R</div>
+                <div class="logo-title">RENAISSANCE®</div>
+                <div class="logo-sub">RIVERSIDE HOTEL SAIGON</div>
+            </div>
+
+            <div class="bill-titles">
+                <h2>LAUNDRY, PRESSING & DRY CLEANING</h2>
+                <h3>ランドリー・プレス・ドライクリーニング</h3>
+                <h4>HÓA ĐƠN</h4>
+            </div>
+
+            <div class="meta-top">
+                Ký hiệu/ Serial No.: <b>LA/11</b><br>
+                Số Hóa Đơn/ Check No.: <input type="text" id="checkNo" value="029901" style="width:60px;" oninput="reCalc()"><br>
+                Ngày/ Date: <input type="text" id="billDate" style="width:85px; font-weight:bold;">
+            </div>
+        </div>
+
+        <div class="notice-text">
+            Please complete this form and inform the Laundry for collection. The grand total will be changed to your account.<br>
+            <span class="jp-text">こちらのリストにご記入の上、係までご連絡ください。合計金額は、お客様のお部屋に加算させて頂きます</span>
+        </div>
+
+        <!-- GUEST INFO -->
+        <div class="guest-info-grid">
+            <div class="field-line">Name (お名前): <input type="text" id="guestName"></div>
+            <div class="field-line">Room No. (お部屋番号): <input type="text" id="roomNo" style="font-size:12px; color:var(--primary-accent);" oninput="reCalc()"></div>
+            <div class="field-line">Date (日付): <input type="text" id="infoDate"></div>
+        </div>
+        <div class="guest-info-grid">
+            <div class="field-line" style="grid-column: 1/3;">Special Instructions (特別なご要望): <input type="text" id="specialIns"></div>
+            <div class="field-line">Order No: <input type="text" id="orderNo"></div>
+        </div>
+        <div class="field-line" style="font-size:8.5px; margin-bottom: 3px;">
+            Guest signature (ご署名): <input type="text" style="flex:1;">
+        </div>
+
+        <!-- PHÂN LOẠI KHÁCH -->
+        <div class="bill-type-box">
+            <b>ĐỐI TƯỢNG KHÁCH / PHÂN LOẠI:</b>
+            <label><input type="radio" name="billCategory" value="normal" checked onclick="reCalc()"> Khách Thường (100% Giá)</label>
+            <label style="color: blue; font-weight: bold;"><input type="radio" name="billCategory" id="catClubBoss" value="club_boss" onclick="reCalc()"> 🌟 Sếp / Club (Discount 50%)</label>
+        </div>
+
+        <!-- RULES -->
+        <div class="service-rules">
+            <label><input type="radio" name="svcSpeed" id="speedReg" value="regular" checked onclick="reCalc()"> <b>REGULAR SERVICE:</b> Garments received before 10.00am will be returned on the same day before 6.00p.m.</label><br>
+            <label><input type="radio" name="svcSpeed" id="speedExp" value="express" onclick="reCalc()"> <b style="color:var(--primary-accent);">EXPRESS SERVICE:</b> Garments received before 3:00pm will be returned within 4 hours with a 100% surcharge.</label>
+        </div>
+
+        <!-- BẢNG LAUNDRY -->
+        <table class="bill-table">
+            <thead>
+                <tr><th colspan="10" class="sec-header">LAUNDRY ランドリー</th></tr>
+                <tr>
+                    <th style="width:14px; color:#777;">Guest</th>
+                    <th style="width:38px; background:#e2e8f0; color:var(--primary-accent);">HOTEL ★</th>
+                    <th>GENTLEMEN 紳士</th><th style="width:40px;">Price</th><th style="width:50px;">Amount</th>
+                    <th style="width:14px; color:#777;">Guest</th>
+                    <th style="width:38px; background:#e2e8f0; color:var(--primary-accent);">HOTEL ★</th>
+                    <th>LADIES 婦人</th><th style="width:40px;">Price</th><th style="width:50px;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_fu" data-price="99000" oninput="reCalc()"></td>
+                    <td><b>Full Sleeve Shirt</b> <span class="jp-text">ドレスシャツ</span> <span class="code-tag">[fu]</span></td><td>99,000</td><td class="amt-cell" id="amt_ld_fu"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_da" data-price="132000" oninput="reCalc()"></td>
+                    <td><b>Day Dress</b> <span class="jp-text">ワンピース</span> <span class="code-tag">[da]</span></td><td>132,000</td><td class="amt-cell" id="amt_ld_da"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_hal" data-price="95000" oninput="reCalc()"></td>
+                    <td><b>Half Sleeve Shirt</b> <span class="jp-text">Yシャツ</span> <span class="code-tag">[hal]</span></td><td>95,000</td><td class="amt-cell" id="amt_ld_hal"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_sk" data-price="106000" oninput="reCalc()"></td>
+                    <td><b>Skirt</b> <span class="jp-text">スカート</span> <span class="code-tag">[sk]</span></td><td>106,000</td><td class="amt-cell" id="amt_ld_sk"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_sp" data-price="88000" oninput="reCalc()"></td>
+                    <td><b>Sport Shirt</b> <span class="jp-text">スポーツシャツ</span> <span class="code-tag">[sp]</span></td><td>88,000</td><td class="amt-cell" id="amt_ld_sp"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_jaf" data-price="135000" oninput="reCalc()"></td>
+                    <td><b>Jacket</b> <span class="jp-text">ジャケット</span> <span class="code-tag">[jaf]</span></td><td>135,000</td><td class="amt-cell" id="amt_ld_jaf"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_t" data-price="77000" oninput="reCalc()"></td>
+                    <td><b>T-Shirt</b> <span class="jp-text">Tシャツ</span> <span class="code-tag">[t]</span></td><td>77,000</td><td class="amt-cell" id="amt_ld_t"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_sla" data-price="114000" oninput="reCalc()"></td>
+                    <td><b>Slacks / Jeans</b> <span class="jp-text">スラックス/ジーンズ</span> <span class="code-tag">[sla]</span></td><td>114,000</td><td class="amt-cell" id="amt_ld_sla"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_uns" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Undershirt</b> <span class="jp-text">アンダーシャツ</span> <span class="code-tag">[uns]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_uns"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_bl" data-price="99000" oninput="reCalc()"></td>
+                    <td><b>Blouse</b> <span class="jp-text">ブラウス</span> <span class="code-tag">[bl]</span></td><td>99,000</td><td class="amt-cell" id="amt_ld_bl"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_unp" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Underpants</b> <span class="jp-text">下着</span> <span class="code-tag">[unp]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_unp"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_shof" data-price="82000" oninput="reCalc()"></td>
+                    <td><b>Shorts</b> <span class="jp-text">ショーツ</span> <span class="code-tag">[shof]</span></td><td>82,000</td><td class="amt-cell" id="amt_ld_shof"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_ja" data-price="135000" oninput="reCalc()"></td>
+                    <td><b>Jacket</b> <span class="jp-text">ジャケット</span> <span class="code-tag">[ja]</span></td><td>135,000</td><td class="amt-cell" id="amt_ld_ja"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_br" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Brassiere</b> <span class="jp-text">ブラジャー</span> <span class="code-tag">[br]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_br"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_sho" data-price="82000" oninput="reCalc()"></td>
+                    <td><b>Shorts</b> <span class="jp-text">ショーツ</span> <span class="code-tag">[sho]</span></td><td>82,000</td><td class="amt-cell" id="amt_ld_sho"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_st" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Stockings</b> <span class="jp-text">ストッキング</span> <span class="code-tag">[st]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_st"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_tr" data-price="114000" oninput="reCalc()"></td>
+                    <td><b>Trousers / Jeans</b> <span class="jp-text">ズボン / ジーンズ</span> <span class="code-tag">[tr]</span></td><td>114,000</td><td class="amt-cell" id="amt_ld_tr"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_sli" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Slip / Underpants</b> <span class="jp-text">スリップ/下着</span> <span class="code-tag">[sli]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_sli"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_so" data-price="40000" oninput="reCalc()"></td>
+                    <td><b>Socks (Pair)</b> <span class="jp-text">靴下</span> <span class="code-tag">[so]</span></td><td>40,000</td><td class="amt-cell" id="amt_ld_so"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_hanf" data-price="26000" oninput="reCalc()"></td>
+                    <td><b>Handkerchief</b> <span class="jp-text">ハンカチ</span> <span class="code-tag">[hanf]</span></td><td>26,000</td><td class="amt-cell" id="amt_ld_hanf"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_han" data-price="26000" oninput="reCalc()"></td>
+                    <td><b>Handkerchief</b> <span class="jp-text">ハンカチ</span> <span class="code-tag">[han]</span></td><td>26,000</td><td class="amt-cell" id="amt_ld_han"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_pyf" data-price="81000" oninput="reCalc()"></td>
+                    <td><b>Pyjamas (Set)</b> <span class="jp-text">パジャマ</span> <span class="code-tag">[pyf]</span></td><td>81,000</td><td class="amt-cell" id="amt_ld_pyf"></td>
+                </tr>
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_py" data-price="81000" oninput="reCalc()"></td>
+                    <td><b>Pyjamas (Set)</b> <span class="jp-text">パジャマ</span> <span class="code-tag">[py]</span></td><td>81,000</td><td class="amt-cell" id="amt_ld_py"></td>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="ld_swi" data-price="48000" oninput="reCalc()"></td>
+                    <td><b>Swim Suit</b> <span class="jp-text">水着</span> <span class="code-tag">[swi]</span></td><td>48,000</td><td class="amt-cell" id="amt_ld_swi"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- THANH TỔNG CHỌN NGUYÊN CỘT PDC -->
+        <div class="pdc-master-bar" style="margin-top: 5px;">
+            <b style="font-size:9.5px; color:var(--primary-accent);">PRESSING & DRY CLEANING プレス・ドライクリーニング</b>
+            <span>
+                ⚡ <b>CHỌN NGUYÊN CỘT NHANH:</b>
+                <label style="margin-left: 8px; cursor: pointer;"><input type="checkbox" id="master_pr" onclick="toggleColumn('pr', this.checked)"> <b>[✓] Tất cả Pressing</b></label>
+                <label style="margin-left: 12px; cursor: pointer;"><input type="checkbox" id="master_dc" onclick="toggleColumn('dc', this.checked)"> <b>[✓] Tất cả Dry Clean</b></label>
+            </span>
+        </div>
+
+        <!-- BẢNG PRESSING & DRY CLEANING -->
+        <table class="bill-table" style="margin-top: 0;">
+            <thead>
+                <tr>
+                    <th style="width:14px; color:#777;">Guest</th>
+                    <th style="width:38px; background:#e2e8f0; color:var(--primary-accent);">HOTEL ★</th>
+                    <th>GENTLEMEN 紳士</th>
+                    <th style="width:55px;">Pressing</th>
+                    <th style="width:60px;">Dry Clean</th>
+                    <th style="width:50px;">Amount</th>
+                    <th style="width:14px; color:#777;">Guest</th>
+                    <th style="width:38px; background:#e2e8f0; color:var(--primary-accent);">HOTEL ★</th>
+                    <th>LADIES 婦人</th>
+                    <th style="width:55px;">Pressing</th>
+                    <th style="width:60px;">Dry Clean</th>
+                    <th style="width:50px;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- SUIT -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_su" oninput="reCalc()"></td>
+                    <td><b>Suit (2pcs)</b> <span class="jp-text">スーツ</span> <span class="code-tag">[su]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_su" data-price="150000" onchange="reCalc()"> 150k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_su" data-price="295000" onchange="reCalc()"> 295k</label></td>
+                    <td class="amt-cell" id="amt_su"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_jaf" oninput="reCalc()"></td>
+                    <td><b>Jacket</b> <span class="jp-text">ジャケット</span> <span class="code-tag">[jaf]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_jaf" data-price="80000" onchange="reCalc()"> 80k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_jaf" data-price="184000" onchange="reCalc()"> 184k</label></td>
+                    <td class="amt-cell" id="amt_jaf"></td>
+                </tr>
+                <!-- JACKET / SLACKS -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_ja" oninput="reCalc()"></td>
+                    <td><b>Jacket</b> <span class="jp-text">ジャケット</span> <span class="code-tag">[ja]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_ja" data-price="80000" onchange="reCalc()"> 80k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_ja" data-price="184000" onchange="reCalc()"> 184k</label></td>
+                    <td class="amt-cell" id="amt_ja"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_sla" oninput="reCalc()"></td>
+                    <td><b>Slacks</b> <span class="jp-text">スラックス</span> <span class="code-tag">[sla]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_sla" data-price="55000" onchange="reCalc()"> 55k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_sla" data-price="149000" onchange="reCalc()"> 149k</label></td>
+                    <td class="amt-cell" id="amt_sla"></td>
+                </tr>
+                <!-- TROUSERS / SKIRT -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_tr" oninput="reCalc()"></td>
+                    <td><b>Trousers/Jeans</b> <span class="jp-text">ズボン</span> <span class="code-tag">[tr]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_tr" data-price="55000" onchange="reCalc()"> 55k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_tr" data-price="149000" onchange="reCalc()"> 149k</label></td>
+                    <td class="amt-cell" id="amt_tr"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_sk" oninput="reCalc()"></td>
+                    <td><b>Skirt</b> <span class="jp-text">スカート</span> <span class="code-tag">[sk]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_sk" data-price="50000" onchange="reCalc()"> 50k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_sk" data-price="140000" onchange="reCalc()"> 140k</label></td>
+                    <td class="amt-cell" id="amt_sk"></td>
+                </tr>
+                <!-- WAISTCOAT / BLOUSE -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_wa" oninput="reCalc()"></td>
+                    <td><b>Waistcoat</b> <span class="jp-text">ベスト</span> <span class="code-tag">[wa]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_wa" data-price="48000" onchange="reCalc()"> 48k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_wa" data-price="98000" onchange="reCalc()"> 98k</label></td>
+                    <td class="amt-cell" id="amt_wa"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_bl" oninput="reCalc()"></td>
+                    <td><b>Blouse</b> <span class="jp-text">ブラウス</span> <span class="code-tag">[bl]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_bl" data-price="50000" onchange="reCalc()"> 50k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_bl" data-price="128000" onchange="reCalc()"> 128k</label></td>
+                    <td class="amt-cell" id="amt_bl"></td>
+                </tr>
+                <!-- TUXEDO / DAY DRESS -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_tu" oninput="reCalc()"></td>
+                    <td><b>Tuxedo</b> <span class="jp-text">タキシード</span> <span class="code-tag">[tu]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_tu" data-price="150000" onchange="reCalc()"> 150k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_tu" data-price="290000" onchange="reCalc()"> 290k</label></td>
+                    <td class="amt-cell" id="amt_tu"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_da" oninput="reCalc()"></td>
+                    <td><b>Day dress</b> <span class="jp-text">ワンピース</span> <span class="code-tag">[da]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_da" data-price="90000" onchange="reCalc()"> 90k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_da" data-price="174000" onchange="reCalc()"> 174k</label></td>
+                    <td class="amt-cell" id="amt_da"></td>
+                </tr>
+                <!-- SHIRT / EVENING DRESS -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_shi" oninput="reCalc()"></td>
+                    <td><b>Shirt</b> <span class="jp-text">シャツ</span> <span class="code-tag">[shi]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_shi" data-price="50000" onchange="reCalc()"> 50k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_shi" data-price="118000" onchange="reCalc()"> 118k</label></td>
+                    <td class="amt-cell" id="amt_shi"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_ev" oninput="reCalc()"></td>
+                    <td><b>Evening dress</b> <span class="jp-text">ドレス</span> <span class="code-tag">[ev]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_ev" data-price="145000" onchange="reCalc()"> 145k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_ev" data-price="294000" onchange="reCalc()"> 294k</label></td>
+                    <td class="amt-cell" id="amt_ev"></td>
+                </tr>
+                <!-- TIE / SWEATER -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_ti" oninput="reCalc()"></td>
+                    <td><b>Tie</b> <span class="jp-text">ネクタイ</span> <span class="code-tag">[ti]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_ti" data-price="30000" onchange="reCalc()"> 30k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_ti" data-price="74000" onchange="reCalc()"> 74k</label></td>
+                    <td class="amt-cell" id="amt_ti"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_swef" oninput="reCalc()"></td>
+                    <td><b>Sweater</b> <span class="jp-text">セーター</span> <span class="code-tag">[swef]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_swef" data-price="50000" onchange="reCalc()"> 50k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_swef" data-price="136000" onchange="reCalc()"> 136k</label></td>
+                    <td class="amt-cell" id="amt_swef"></td>
+                </tr>
+                <!-- OVERCOAT / SUIT LADIES -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_ov" oninput="reCalc()"></td>
+                    <td><b>Overcoat</b> <span class="jp-text">コート</span> <span class="code-tag">[ov]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_ov" data-price="100000" onchange="reCalc()"> 100k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_ov" data-price="199000" onchange="reCalc()"> 199k</label></td>
+                    <td class="amt-cell" id="amt_ov"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_suf" oninput="reCalc()"></td>
+                    <td><b>Suit (2pcs)</b> <span class="jp-text">スーツ</span> <span class="code-tag">[suf]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_suf" data-price="150000" onchange="reCalc()"> 150k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_suf" data-price="295000" onchange="reCalc()"> 295k</label></td>
+                    <td class="amt-cell" id="amt_suf"></td>
+                </tr>
+                <!-- SWEATER / SCARF -->
+                <tr>
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_swe" oninput="reCalc()"></td>
+                    <td><b>Sweater</b> <span class="jp-text">セーター</span> <span class="code-tag">[swe]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_swe" data-price="50000" onchange="reCalc()"> 50k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_swe" data-price="136000" onchange="reCalc()"> 136k</label></td>
+                    <td class="amt-cell" id="amt_swe"></td>
+
+                    <td><input type="text" class="qty-guest" tabindex="-1"></td>
+                    <td><input type="number" min="0" class="qty-hotel" id="qty_sc" oninput="reCalc()"></td>
+                    <td><b>Scarf</b> <span class="jp-text">スカーフ</span> <span class="code-tag">[sc]</span></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_pr_sc" data-price="30000" onchange="reCalc()"> 30k</label></td>
+                    <td><label class="svc-chk-label"><input type="checkbox" id="chk_dc_sc" data-price="85000" onchange="reCalc()"> 85k</label></td>
+                    <td class="amt-cell" id="amt_sc"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SUMMARY -->
+        <table class="summary-block">
+            <tr>
+                <td style="text-align:right;">LAUNDRY BASIC CHARGE (TẠM TÍNH):</td>
+                <td style="width:120px; text-align:right;" id="lblSubtotal">0</td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">5% SERVICE CHARGE :</td>
+                <td style="text-align:right;" id="lblService">0</td>
+            </tr>
+            <tr>
+                <td style="text-align:right;">8% VAT :</td>
+                <td style="text-align:right;" id="lblVat">0</td>
+            </tr>
+            <tr style="background:#fff0f0; color:var(--primary-accent); font-size:10px;">
+                <td style="text-align:right;">TOTAL VND :</td>
+                <td style="text-align:right; font-weight:900;" id="lblTotal">0</td>
+            </tr>
+        </table>
+
+        <div class="conditions-row">
+            <span><input type="checkbox"> Moth</span>
+            <span><input type="checkbox"> Damaged</span>
+            <span><input type="checkbox"> Mixed Colours</span>
+            <span><input type="checkbox"> Button Missing</span>
+            <span><input type="checkbox"> Stains & Spotting</span>
+        </div>
+
+        <div class="fine-print">
+            <b>CONDITIONS OF SERVICE / 注意事項</b>
+            <ul>
+                <li>Unless the quantity is specified, the hotel count of items will be deemed as correct.</li>
+                <li>Any claims of damage or discrepancies must be made within 24 hours together with this list.</li>
+                <li>We are not liable for items lost as a result of being left in the pockets.</li>
+                <li>Liability of loss and damage is limited to an amount not exceeding 10 times the cost of cleaning the item.</li>
+                <li>All prices quoted are in VND and subject to 8% VAT and 5% service charge.</li>
+            </ul>
+            <div style="text-align:center; font-weight:bold; margin-top:2px;">
+                Please do not place laundry garments in the corridor &nbsp;&nbsp;&nbsp;&nbsp; Your garments are washed with high quality products from <b>ECOLAB®</b>
+            </div>
+            <div style="text-align:center; font-style:italic;">(Hóa Đơn Phụ - Không Có Giá Trị Thanh Toán Trực Tiếp) / [This Invoice Is Subordinate - Not For Direct Payment]</div>
+        </div>
+
+        <div class="footer-distribution">
+            <span>Distribution: 1. White: Housekeeping / FO</span>
+            <span>2. Green: Guest</span>
+            <span>3. Pink: Account</span>
+        </div>
+
+    </div>
+
+    <!-- CỘT BÊN PHẢI - QUẢN LÝ CA HÔM NAY -->
+    <div class="side-bar">
+        <div class="card">
+            <button class="btn btn-green" style="width:100%; margin-bottom:8px; padding:10px;" onclick="saveCurrentBill()">💾 LƯU BILL NÀY VÀO CA</button>
+            <button class="btn btn-blue" style="width:100%; margin-bottom:6px;" onclick="printAllShiftBills()">🖨️ IN TẤT CẢ BILL TRONG CA</button>
+            <button class="btn btn-gray" style="width:100%; font-size:10px;" onclick="printCurrentBillOnly()">🖨️ In Bill Hiện Tại (Lẻ)</button>
+        </div>
+
+        <div class="card">
+            <div style="font-weight:bold; display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <span>📊 TỔNG HỢP CA (TẬP TRUNG SUBTOTAL)</span>
+                <button style="background:red; color:white; border:none; padding:2px 5px; border-radius:3px; cursor:pointer;" onclick="clearShift()">Xóa Ca</button>
+            </div>
+            <div id="shiftSummaryArea">Chưa có bill lưu.</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- KHU VỰC IN HÀNG LOẠT -->
+<div id="printArea"></div>
+
+<script>
+// 1. NGÀY THÁNG THEO THIẾT BỊ
+function getDeviceFormattedDate() {
+    const now = new Date();
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const m = months[now.getMonth()];
+    const d = String(now.getDate()).padStart(2, '0');
+    const y = now.getFullYear();
+    return `${m} ${d} ${y}`;
+}
+
+const currentDateFormatted = getDeviceFormattedDate();
+document.getElementById('billDate').value = currentDateFormatted;
+document.getElementById('infoDate').value = currentDateFormatted;
+
+let activeComputed = {};
+let shiftBills = JSON.parse(localStorage.getItem('ren_shift_bills_v3') || '[]');
+let isParsingFromQuickStr = false; // cờ chống lặp vô tận khi đồng bộ 2 chiều
+
+const PDC_KEYS = ['su', 'ja', 'tr', 'wa', 'tu', 'shi', 'ti', 'ov', 'swe', 'jaf', 'sla', 'sk', 'bl', 'da', 'ev', 'swef', 'suf', 'sc'];
+
+// CHỤP CHÍNH XÁC GIÁ TRỊ VÀ CHECKBOX ĐỂ IN
+function captureBillHtmlSnapshot() {
+    const paper = document.getElementById('activeBillPaper');
+
+    paper.querySelectorAll('input[type="text"], input[type="number"]').forEach(inp => {
+        inp.setAttribute('value', inp.value);
+    });
+
+    paper.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+        if (chk.checked) {
+            chk.setAttribute('checked', 'checked');
+        } else {
+            chk.removeAttribute('checked');
+        }
+    });
+
+    paper.querySelectorAll('input[type="radio"]').forEach(rad => {
+        if (rad.checked) {
+            rad.setAttribute('checked', 'checked');
+        } else {
+            rad.removeAttribute('checked');
+        }
+    });
+
+    return paper.outerHTML;
+}
+
+// 2. TÍNH TOÁN CẢ BẢNG VÀ TỰ SINH CHUỖI GÕ NHANH
+function reCalc() {
+    let baseTotal = 0;
+    let totalQty = 0;
+
+    document.querySelectorAll('.amt-cell').forEach(c => c.innerText = '');
+
+    // 2.1 TÍNH LAUNDRY
+    document.querySelectorAll('.bill-table:first-of-type .qty-hotel').forEach(inp => {
+        let val = parseInt(inp.value) || 0;
+        if (val > 0) {
+            inp.classList.add('has-val');
+            let price = parseInt(inp.dataset.price) || 0;
+            let rowAmt = val * price;
+            baseTotal += rowAmt;
+            totalQty += val;
+
+            let amtCell = document.getElementById('amt_' + inp.id);
+            if (amtCell) amtCell.innerText = rowAmt.toLocaleString();
+        } else {
+            inp.classList.remove('has-val');
+        }
+    });
+
+    // 2.2 TÍNH PRESSING & DRY CLEANING
+    PDC_KEYS.forEach(code => {
+        let qtyInp = document.getElementById('qty_' + code);
+        if (!qtyInp) return;
+
+        let qty = parseInt(qtyInp.value) || 0;
+        let chkPr = document.getElementById('chk_pr_' + code);
+        let chkDc = document.getElementById('chk_dc_' + code);
+
+        // TỰ ĐỘNG NHẢY SỐ LƯỢNG 1 NẾU NGƯỜI DÙNG TÍCH VÀO PR HOẶC DC
+        if ((chkPr.checked || chkDc.checked) && qty === 0) {
+            qty = 1;
+            qtyInp.value = 1;
+        }
+
+        if (qty > 0) {
+            qtyInp.classList.add('has-val');
+            totalQty += qty;
+
+            // Tự tích Pressing nếu gõ số lượng mà chưa tích ô nào
+            if (!chkPr.checked && !chkDc.checked) {
+                chkPr.checked = true;
+            }
+
+            let unitPrice = 0;
+            if (chkPr.checked) unitPrice += parseInt(chkPr.dataset.price || 0);
+            if (chkDc.checked) unitPrice += parseInt(chkDc.dataset.price || 0);
+
+            let rowAmt = qty * unitPrice;
+            baseTotal += rowAmt;
+
+            let amtCell = document.getElementById('amt_' + code);
+            if (amtCell) amtCell.innerText = rowAmt > 0 ? rowAmt.toLocaleString() : '';
+        } else {
+            qtyInp.classList.remove('has-val');
+            chkPr.checked = false;
+            chkDc.checked = false;
+        }
+    });
+
+    let isExp = document.getElementById('speedExp').checked;
+    if (isExp) baseTotal = baseTotal * 2;
+
+    let isClubBoss = document.getElementById('catClubBoss').checked;
+    let subtotal = isClubBoss ? baseTotal * 0.5 : baseTotal;
+
+    let service = subtotal * 0.05;
+    let vat = (subtotal + service) * 0.08;
+    let grandTotal = subtotal + service + vat;
+
+    document.getElementById('lblSubtotal').innerText = Math.round(subtotal).toLocaleString();
+    document.getElementById('lblService').innerText = Math.round(service).toLocaleString();
+    document.getElementById('lblVat').innerText = Math.round(vat).toLocaleString();
+    document.getElementById('lblTotal').innerText = Math.round(grandTotal).toLocaleString();
+
+    activeComputed = {
+        room: document.getElementById('roomNo').value || 'N/A',
+        checkNo: document.getElementById('checkNo').value || 'N/A',
+        guestName: document.getElementById('guestName').value || '',
+        date: document.getElementById('billDate').value,
+        totalQty: totalQty,
+        subtotal: Math.round(subtotal),
+        grandTotal: Math.round(grandTotal),
+        isClubBoss: isClubBoss,
+        time: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}),
+        getHtmlCopy: function() { return captureBillHtmlSnapshot(); }
+    };
+
+    // ĐỒNG BỘ NGƯỢC LẠI THANH GÕ NHANH NẾU KHÔNG PHẢI ĐANG GÕ TRÊN THANH GÕ
+    if (!isParsingFromQuickStr) {
+        updateQuickStringFromForm();
+    }
+}
+
+// 3. ĐỒNG BỘ BẢNG TRÊN BILL ➔ THANH CÚ PHÁP GÕ NHANH
+function updateQuickStringFromForm() {
+    let strParts = [];
+
+    let room = document.getElementById('roomNo').value.trim();
+    if (room) strParts.push(room);
+
+    let checkNo = document.getElementById('checkNo').value.trim();
+    if (checkNo && checkNo !== '029901') {
+        strParts.push('c' + checkNo);
+    }
+
+    if (document.getElementById('speedExp').checked) {
+        strParts.push('exp');
+    }
+
+    // Laundry items
+    let ldItems = [];
+    document.querySelectorAll('.bill-table:first-of-type .qty-hotel').forEach(inp => {
+        let val = parseInt(inp.value) || 0;
+        if (val > 0) {
+            let code = inp.id.replace('ld_', '');
+            ldItems.push(`${val}${code}`);
+        }
+    });
+    if (ldItems.length > 0) {
+        strParts.push('ld' + ldItems.join(''));
+    }
+
+    // Pressing items
+    let prItems = [];
+    PDC_KEYS.forEach(code => {
+        let qty = parseInt(document.getElementById('qty_' + code)?.value) || 0;
+        let chkPr = document.getElementById('chk_pr_' + code);
+        if (qty > 0 && chkPr && chkPr.checked) {
+            prItems.push(`${qty}${code}`);
+        }
+    });
+    if (prItems.length > 0) {
+        strParts.push('pr' + prItems.join(''));
+    }
+
+    // Dry Clean items
+    let dcItems = [];
+    PDC_KEYS.forEach(code => {
+        let qty = parseInt(document.getElementById('qty_' + code)?.value) || 0;
+        let chkDc = document.getElementById('chk_dc_' + code);
+        if (qty > 0 && chkDc && chkDc.checked) {
+            dcItems.push(`${qty}${code}`);
+        }
+    });
+    if (dcItems.length > 0) {
+        strParts.push('dc' + dcItems.join(''));
+    }
+
+    document.getElementById('quickStr').value = strParts.join(' ');
+}
+
+// 4. ĐỒNG BỘ THANH GÕ NHANH ➔ ĐIỀN VÀ TÍCH VÀO BILL (LIVE REALTIME)
+function parseStringAndFill() {
+    isParsingFromQuickStr = true;
+    let str = document.getElementById('quickStr').value.trim().toLowerCase();
+
+    resetBillForm(false); // Xóa dữ liệu cũ, giữ lại text đang gõ
+
+    if (!str) {
+        isParsingFromQuickStr = false;
+        return;
+    }
+
+    let roomMatch = str.match(/^(\d{3,4})/);
+    if (roomMatch) {
+        document.getElementById('roomNo').value = roomMatch[1];
+        str = str.substring(roomMatch[1].length);
+    }
+
+    let checkMatch = str.match(/^(c|chk|check)(\d+)/);
+    if (checkMatch) {
+        document.getElementById('checkNo').value = checkMatch[2];
+        str = str.replace(/^(c|chk|check)\d+/, '');
+    }
+
+    if (str.includes('exp') || str.includes('express')) {
+        document.getElementById('speedExp').checked = true;
+        str = str.replace(/(exp|express)/g, '');
+    } else {
+        document.getElementById('speedReg').checked = true;
+    }
+
+    const MAP_LAUNDRY = {
+        "fu": "ld_fu", "hal": "ld_hal", "sp": "ld_sp", "t": "ld_t", "uns": "ld_uns",
+        "unp": "ld_unp", "ja": "ld_ja", "sho": "ld_sho", "tr": "ld_tr", "so": "ld_so",
+        "han": "ld_han", "py": "ld_py", "da": "ld_da", "sk": "ld_sk", "sla": "ld_sla",
+        "bl": "ld_bl", "br": "ld_br", "st": "ld_st", "sli": "ld_sli", "swi": "ld_swi",
+        "jaf": "ld_jaf", "shof": "ld_shof", "hanf": "ld_hanf", "pyf": "ld_pyf"
+    };
+
+    let currentSvc = "ld";
+    let regex = /(ld|pr|dc)|(\d+)([a-z]+)/g;
+    let m;
+
+    while ((m = regex.exec(str)) !== null) {
+        if (m[1]) {
+            currentSvc = m[1];
+        } else if (m[2] && m[3]) {
+            let qty = parseInt(m[2]);
+            let code = m[3];
+
+            if (currentSvc === "ld") {
+                let targetId = MAP_LAUNDRY[code] || ("ld_" + code);
+                let inp = document.getElementById(targetId);
+                if (inp) inp.value = qty;
+            } else {
+                let qtyInp = document.getElementById("qty_" + code);
+                if (qtyInp) {
+                    qtyInp.value = qty;
+                    let chkPr = document.getElementById("chk_pr_" + code);
+                    let chkDc = document.getElementById("chk_dc_" + code);
+                    
+                    if (currentSvc === "pr") {
+                        if (chkPr) chkPr.checked = true;
+                    } else if (currentSvc === "dc") {
+                        if (chkDc) chkDc.checked = true;
+                    }
+                }
+            }
+        }
+    }
+
+    reCalc();
+    isParsingFromQuickStr = false;
+}
+
+// 5. CHỌN / BỎ CHỌN NGUYÊN CỘT DỊCH VỤ (PR / DC)
+function toggleColumn(type, isChecked) {
+    PDC_KEYS.forEach(code => {
+        let chk = document.getElementById(`chk_${type}_${code}`);
+        if (chk) chk.checked = isChecked;
+    });
+    reCalc();
+}
+
+// 6. QUẢN LÝ CA & IN HÀNG LOẠT
+function saveCurrentBill() {
+    if (!activeComputed.totalQty || activeComputed.totalQty === 0) {
+        alert("Bill chưa có số lượng món!");
+        return;
+    }
+    
+    let saveData = {
+        ...activeComputed,
+        htmlCopy: captureBillHtmlSnapshot()
+    };
+    
+    shiftBills.unshift(saveData);
+    localStorage.setItem('ren_shift_bills_v3', JSON.stringify(shiftBills));
+    renderShiftSummary();
+    alert("✅ Đã lưu Bill vào ca thành công!");
+}
+
+function renderShiftSummary() {
+    let area = document.getElementById('shiftSummaryArea');
+    if (shiftBills.length === 0) {
+        area.innerHTML = "Chưa có bill nào lưu trong ca.";
+        return;
+    }
+
+    let sumSubtotal = 0, sumQty = 0;
+    let html = `<table class="shift-table">
+        <thead>
+            <tr><th>Giờ</th><th>Phòng</th><th>Loại</th><th>Món</th><th>Subtotal</th></tr>
+        </thead><tbody>`;
+
+    shiftBills.forEach(b => {
+        sumSubtotal += b.subtotal;
+        sumQty += b.totalQty;
+        let typeBadge = b.isClubBoss ? `<span style="color:blue; font-weight:bold;">Sếp/Club(-50%)</span>` : `Thường`;
+        html += `<tr>
+            <td>${b.time}</td>
+            <td><b>${b.room}</b></td>
+            <td>${typeBadge}</td>
+            <td>${b.totalQty}</td>
+            <td><b>${b.subtotal.toLocaleString()}k</b></td>
+        </tr>`;
+    });
+
+    html += `</tbody><tfoot><tr style="font-weight:bold; background:#fff0f0;">
+        <td colspan="3">TỔNG CA</td>
+        <td>${sumQty} món</td>
+        <td style="color:var(--primary-accent);">${sumSubtotal.toLocaleString()}k</td>
+    </tr></tfoot></table>`;
+
+    area.innerHTML = html;
+}
+
+function printAllShiftBills() {
+    if (shiftBills.length === 0) {
+        alert("Chưa có bill nào trong ca để in!");
+        return;
+    }
+    let printArea = document.getElementById('printArea');
+    printArea.innerHTML = '';
+
+    shiftBills.forEach(b => {
+        let page = document.createElement('div');
+        page.className = 'printable-bill-page';
+        page.innerHTML = b.htmlCopy;
+        printArea.appendChild(page);
+    });
+
+    window.print();
+}
+
+function printCurrentBillOnly() {
+    let printArea = document.getElementById('printArea');
+    printArea.innerHTML = `<div class="printable-bill-page">${captureBillHtmlSnapshot()}</div>`;
+    window.print();
+}
+
+function clearShift() {
+    if (confirm("Bạn có chắc chắn muốn XÓA TOÀN BỘ BILL trong ca?")) {
+        shiftBills = [];
+        localStorage.removeItem('ren_shift_bills_v3');
+        renderShiftSummary();
+    }
+}
+
+function resetBillForm(clearQuick = true) {
+    if (clearQuick) document.getElementById('quickStr').value = '';
+    document.querySelectorAll('.qty-hotel').forEach(i => { i.value = ''; i.removeAttribute('value'); });
+    document.querySelectorAll('.qty-guest').forEach(i => { i.value = ''; i.removeAttribute('value'); });
+    document.querySelectorAll('.svc-chk-label input').forEach(c => { c.checked = false; c.removeAttribute('checked'); });
+    document.getElementById('master_pr').checked = false;
+    document.getElementById('master_dc').checked = false;
+    document.getElementById('roomNo').value = '';
+    document.getElementById('guestName').value = '';
+    document.getElementById('speedReg').checked = true;
+    document.querySelector('input[name="billCategory"][value="normal"]').checked = true;
+    reCalc();
+}
+
+renderShiftSummary();
+</script>
+</body>
+</html>
